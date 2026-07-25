@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEATПРОЕКТ — Консультации по мясному производству</title>
+<meta name="description" content="MEATПРОЕКТ — экспертные консультации по технологии мяса и мясной продукции: рецептуры, запуск цехов, подбор оборудования, аудит производства. Технолог, кандидат наук Александр Герасимов.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A5%A9%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+/* ============================================================
+   MEATПРОЕКТ — design tokens
+   ============================================================ */
+:root{
+  --bg-base:#140505;
+  --bg-elevated:#210a0a;
+  --bg-card:#2a0e0e;
+  --bg-card-hover:#331212;
+  --hairline: rgba(201,161,90,0.16);
+  --hairline-strong: rgba(201,161,90,0.32);
+  --accent:#8a1414;
+  --accent-bright:#b81f18;
+  --accent-deep:#5c0d0d;
+  --gold:#c9a15a;
+  --gold-bright:#e0bd7c;
+  --gold-dim:#8f7442;
+  --text:#f4e9da;
+  --text-dim:#c9b6a6;
+  --text-faint:#8a7161;
+  --danger:#e0665f;
+  --success:#7ea36a;
+  --radius:2px;
+  --font-display:'Oswald', sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+  --font-body:'Inter', sans-serif;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg-base);
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.6;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+a{color:inherit; text-decoration:none;}
+button{font-family:inherit; cursor:pointer;}
+ul{list-style:none;}
+img{max-width:100%; display:block;}
+:focus-visible{outline:2px solid var(--gold-bright); outline-offset:2px;}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+}
+
+/* ---------- background texture: marbling grain + fat veins ---------- */
+.bg-texture{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-color:var(--bg-base);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 15% -10%, rgba(138,20,20,0.35), transparent 60%),
+    radial-gradient(ellipse 100% 70% at 100% 110%, rgba(90,13,13,0.4), transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23c9a15a' stroke-opacity='0.05' stroke-width='1.4'%3E%3Cpath d='M-20 30 Q40 0 100 30 T220 20'/%3E%3Cpath d='M-20 90 Q40 60 100 92 T240 80'/%3E%3Cpath d='M-10 150 Q60 120 120 152 T250 140'/%3E%3Cpath d='M-10 210 Q60 182 130 212 T250 200'/%3E%3Ccircle cx='30' cy='60' r='3'/%3E%3Ccircle cx='170' cy='110' r='2'/%3E%3Ccircle cx='90' cy='190' r='2.4'/%3E%3Ccircle cx='210' cy='40' r='2'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:repeat;
+  background-size:auto, auto, 240px 240px;
+}
+.bg-texture::after{
+  content:'';
+  position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(20,5,5,0.2), rgba(20,5,5,0.55) 60%, rgba(20,5,5,0.85));
+}
+
+/* ---------- layout shell ---------- */
+.wrap{position:relative; z-index:1;}
+.container{max-width:1080px; margin:0 auto; padding:0 24px;}
+
+/* ---------- header ---------- */
+header.site{
+  position:sticky; top:0; z-index:50;
+  background:rgba(20,5,5,0.86);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--hairline);
+}
+.header-inner{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 24px; max-width:1080px; margin:0 auto;
+  gap:20px;
+}
+.brand{display:flex; align-items:center; gap:12px;}
+.stamp{
+  width:44px; height:44px; border-radius:50%;
+  border:2px solid var(--gold);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-size:15px; font-weight:700;
+  color:var(--gold); letter-spacing:0.5px; text-align:center;
+  position:relative; flex-shrink:0;
+  transform:rotate(-8deg);
+}
+.stamp::before{
+  content:''; position:absolute; inset:-6px; border-radius:50%;
+  border:1px dashed var(--gold-dim); opacity:0.6;
+}
+.brand-text{
+  font-family:var(--font-display); font-weight:700;
+  font-size:20px; letter-spacing:1px; text-transform:uppercase;
+  color:var(--text);
+}
+.brand-text span{color:var(--gold-bright);}
+.brand-sub{
+  font-family:var(--font-mono); font-size:10px; letter-spacing:1.6px;
+  color:var(--text-faint); text-transform:uppercase; margin-top:2px;
+}
+
+nav.tabs{display:flex; gap:4px;}
+nav.tabs button{
+  background:none; border:none; color:var(--text-dim);
+  font-family:var(--font-display); font-size:14px; letter-spacing:1.2px;
+  text-transform:uppercase; padding:10px 16px; position:relative;
+  transition:color 0.2s;
+}
+nav.tabs button::after{
+  content:''; position:absolute; left:16px; right:16px; bottom:2px; height:2px;
+  background:var(--gold); transform:scaleX(0); transform-origin:left;
+  transition:transform 0.25s;
+}
+nav.tabs button:hover{color:var(--text);}
+nav.tabs button.active{color:var(--gold-bright);}
+nav.tabs button.active::after{transform:scaleX(1);}
+
+.nav-toggle{display:none; background:none; border:1px solid var(--hairline-strong); color:var(--text); padding:8px 12px; border-radius:var(--radius); font-size:18px;}
+
+@media (max-width:720px){
+  nav.tabs{
+    position:fixed; top:73px; left:0; right:0; bottom:0;
+    background:var(--bg-base); flex-direction:column; padding:24px;
+    transform:translateX(100%); transition:transform 0.3s ease; z-index:49;
+    gap:0;
+  }
+  nav.tabs.open{transform:translateX(0);}
+  nav.tabs button{width:100%; text-align:left; padding:16px 8px; font-size:20px; border-bottom:1px solid var(--hairline);}
+  .nav-toggle{display:block;}
+}
+
+/* ---------- hero (about tab) ---------- */
+.hero{
+  padding:88px 24px 64px; text-align:center;
+  border-bottom:1px solid var(--hairline);
+}
+.hero-eyebrow{
+  font-family:var(--font-mono); font-size:12px; letter-spacing:3px;
+  color:var(--gold); text-transform:uppercase; margin-bottom:18px;
+  opacity:0; animation:riseIn 0.7s ease forwards;
+}
+.hero h1{
+  font-family:var(--font-display); font-weight:700;
+  font-size:clamp(34px, 5.6vw, 60px); line-height:1.08;
+  text-transform:uppercase; letter-spacing:0.5px;
+  max-width:840px; margin:0 auto 20px;
+  opacity:0; animation:riseIn 0.7s ease 0.1s forwards;
+}
+.hero h1 em{
+  font-style:normal; color:var(--gold-bright);
+}
+.hero p.lead{
+  max-width:580px; margin:0 auto 32px; color:var(--text-dim); font-size:17px;
+  opacity:0; animation:riseIn 0.7s ease 0.2s forwards;
+}
+.hero-actions{
+  display:flex; gap:14px; justify-content:center; flex-wrap:wrap;
+  opacity:0; animation:riseIn 0.7s ease 0.3s forwards;
+}
+@keyframes riseIn{
+  from{opacity:0; transform:translateY(14px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-display); font-size:14px; letter-spacing:1.5px;
+  text-transform:uppercase; padding:14px 28px; border-radius:var(--radius);
+  border:1px solid transparent; transition:transform 0.15s, background 0.2s, border-color .2s;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn-primary{background:var(--accent-bright); color:#fff; border-color:var(--accent-bright);}
+.btn-primary:hover{background:var(--accent);}
+.btn-outline{border-color:var(--gold-dim); color:var(--gold-bright);}
+.btn-outline:hover{border-color:var(--gold); background:rgba(201,161,90,0.08);}
+.btn-sm{padding:8px 16px; font-size:12px;}
+.btn-ghost{background:none; border:1px solid var(--hairline-strong); color:var(--text-dim);}
+.btn-ghost:hover{color:var(--text); border-color:var(--gold-dim);}
+.btn-danger{background:none; border:1px solid var(--danger); color:var(--danger);}
+.btn-danger:hover{background:rgba(224,102,95,0.1);}
+
+/* ---------- section framing ---------- */
+main{min-height:60vh;}
+.tab-panel{display:none; padding:64px 0 96px; scroll-margin-top:80px;}
+.tab-panel.active{display:block;}
+
+.panel-head{margin-bottom:40px; text-align:center;}
+.panel-head .eyebrow{
+  font-family:var(--font-mono); font-size:12px; letter-spacing:3px;
+  color:var(--gold); text-transform:uppercase; margin-bottom:10px;
+}
+.panel-head h2{
+  font-family:var(--font-display); font-weight:700; text-transform:uppercase;
+  font-size:clamp(28px, 4vw, 42px); letter-spacing:0.5px;
+}
+.panel-head p{color:var(--text-dim); max-width:520px; margin:12px auto 0;}
+
+/* ---------- consultant profile card (static, About tab) ---------- */
+.profile-card{
+  background:var(--bg-card); border:1px solid var(--hairline-strong);
+  border-radius:var(--radius); padding:40px; margin-bottom:56px;
+  display:grid; grid-template-columns:160px 1fr; gap:36px;
+}
+@media (max-width:640px){.profile-card{grid-template-columns:1fr; text-align:center;}}
+.profile-medal{
+  width:132px; height:132px; border-radius:50%; margin:0 auto;
+  border:2px solid var(--gold); position:relative;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-size:34px; font-weight:700;
+  color:var(--gold-bright); background:radial-gradient(circle at 30% 30%, rgba(201,161,90,0.14), transparent 70%);
+}
+.profile-medal::before{
+  content:''; position:absolute; inset:-9px; border-radius:50%;
+  border:1px dashed var(--gold-dim); opacity:0.55;
+}
+.profile-medal-caption{
+  font-family:var(--font-mono); font-size:10px; letter-spacing:1.5px;
+  color:var(--text-faint); text-align:center; margin-top:14px; text-transform:uppercase;
+}
+.profile-name{font-family:var(--font-display); font-size:26px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;}
+.profile-role{color:var(--gold-bright); font-family:var(--font-mono); font-size:13px; letter-spacing:0.5px; margin-bottom:4px;}
+.profile-loc{color:var(--text-faint); font-size:13px; margin-bottom:20px;}
+.profile-summary{color:var(--text-dim); font-size:15px; max-width:640px;}
+
+.profile-block{margin-top:28px;}
+.profile-block h4{
+  font-family:var(--font-mono); font-size:12px; letter-spacing:2px; color:var(--gold);
+  text-transform:uppercase; margin-bottom:14px;
+}
+.edu-list li{color:var(--text-dim); font-size:14px; padding-left:16px; position:relative; margin-bottom:8px;}
+.edu-list li::before{content:'—'; position:absolute; left:0; color:var(--gold-dim);}
+
+.timeline{border-left:1px solid var(--hairline-strong); padding-left:24px; margin-left:4px;}
+.timeline-item{position:relative; padding-bottom:22px;}
+.timeline-item:last-child{padding-bottom:0;}
+.timeline-item::before{
+  content:''; position:absolute; left:-29px; top:4px; width:9px; height:9px;
+  border-radius:50%; background:var(--gold); box-shadow:0 0 0 3px var(--bg-card);
+}
+.timeline-year{font-family:var(--font-mono); font-size:12px; color:var(--gold-bright); letter-spacing:0.5px; margin-bottom:3px;}
+.timeline-item p{color:var(--text-dim); font-size:14px;}
+.timeline-item b{color:var(--text); font-weight:500;}
+
+.awards-list li{
+  color:var(--text-dim); font-size:14px; margin-bottom:12px; padding:14px 16px;
+  border:1px solid var(--hairline); border-radius:var(--radius); background:rgba(0,0,0,0.15);
+}
+.awards-list li b{display:block; color:var(--text); font-weight:500; margin-bottom:3px; font-family:var(--font-display); text-transform:uppercase; font-size:13px; letter-spacing:0.5px;}
+
+.press-list{display:flex; flex-direction:column; gap:8px;}
+.press-list a{
+  display:flex; align-items:center; gap:10px; font-size:14px; color:var(--text-dim);
+  border:1px solid var(--hairline); border-radius:var(--radius); padding:12px 16px;
+  transition:border-color 0.2s, color 0.2s;
+}
+.press-list a:hover{border-color:var(--gold-dim); color:var(--gold-bright);}
+.press-list a::before{content:'↗'; color:var(--gold-dim); font-family:var(--font-mono);}
+
+/* content cards (dynamic sections) */
+.section-list{display:flex; flex-direction:column; gap:1px; background:var(--hairline);}
+.content-card{
+  background:var(--bg-card); padding:32px; display:grid;
+  grid-template-columns:auto 1fr; gap:24px; align-items:start;
+  transition:background 0.2s;
+}
+.content-card:hover{background:var(--bg-card-hover);}
+.card-mark{
+  font-family:var(--font-mono); font-size:12px; color:var(--gold-dim);
+  border:1px solid var(--hairline-strong); border-radius:50%;
+  width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.card-body h3{
+  font-family:var(--font-display); font-size:20px; text-transform:uppercase;
+  letter-spacing:0.5px; margin-bottom:10px; color:var(--text);
+}
+.card-body .card-text{color:var(--text-dim); white-space:pre-wrap; margin-bottom:14px;}
+.card-media{margin:14px 0;}
+.card-media img{border-radius:var(--radius); border:1px solid var(--hairline); max-height:360px; object-fit:cover;}
+.card-links{display:flex; gap:16px; flex-wrap:wrap;}
+.card-links a{
+  font-family:var(--font-mono); font-size:13px; color:var(--gold-bright);
+  border-bottom:1px solid var(--gold-dim); padding-bottom:2px;
+}
+.card-links a:hover{color:var(--gold); border-color:var(--gold);}
+
+/* price list variant */
+.price-card .card-body{display:flex; justify-content:space-between; align-items:baseline; gap:20px; flex-wrap:wrap;}
+.price-tag{font-family:var(--font-mono); font-size:20px; color:var(--gold-bright); white-space:nowrap;}
+
+.empty-state{
+  text-align:center; padding:60px 20px; color:var(--text-faint);
+  font-family:var(--font-mono); font-size:14px; letter-spacing:0.5px;
+  border:1px dashed var(--hairline-strong); border-radius:var(--radius);
+}
+
+/* ---------- footer ---------- */
+footer.site{
+  border-top:1px solid var(--hairline);
+  background:rgba(15,4,4,0.6);
+  padding:56px 24px 28px;
+  scroll-margin-top:80px;
+}
+.footer-grid{
+  display:grid; grid-template-columns:1.3fr 1fr; gap:40px;
+  max-width:1080px; margin:0 auto 32px;
+}
+@media (max-width:640px){.footer-grid{grid-template-columns:1fr;}}
+.footer-brand .brand-text{font-size:18px;}
+.footer-brand p{color:var(--text-faint); margin-top:14px; max-width:340px; font-size:14px;}
+.footer-contacts h4{
+  font-family:var(--font-mono); font-size:12px; letter-spacing:2px;
+  color:var(--gold); text-transform:uppercase; margin-bottom:16px;
+}
+.contact-row{display:flex; gap:10px; margin-bottom:10px; font-size:15px; color:var(--text-dim);}
+.contact-row b{color:var(--text); font-weight:500; min-width:110px; display:inline-block;}
+.contact-row a{color:var(--gold-bright);}
+.contact-row a:hover{text-decoration:underline;}
+.footer-bottom{
+  max-width:1080px; margin:0 auto; padding-top:24px; border-top:1px solid var(--hairline);
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+}
+.footer-bottom small{color:var(--text-faint); font-size:12px;}
+.admin-link{font-family:var(--font-mono); font-size:12px; color:var(--text-faint); opacity:0.7; background:none; border:none;}
+.admin-link:hover{color:var(--gold); opacity:1;}
+
+/* ============================================================
+   ADMIN PANEL
+   ============================================================ */
+.admin-overlay{
+  position:fixed; inset:0; background:rgba(10,3,3,0.85); backdrop-filter:blur(4px);
+  z-index:100; display:none; align-items:flex-start; justify-content:center;
+  overflow-y:auto; padding:40px 20px;
+}
+.admin-overlay.open{display:flex;}
+.admin-box{
+  background:var(--bg-elevated); border:1px solid var(--hairline-strong);
+  width:100%; max-width:880px; border-radius:var(--radius);
+  padding:32px; position:relative;
+}
+.admin-close{
+  position:absolute; top:20px; right:20px; background:none; border:none;
+  color:var(--text-faint); font-size:22px; line-height:1;
+}
+.admin-close:hover{color:var(--text);}
+.admin-title{font-family:var(--font-display); font-size:24px; text-transform:uppercase; margin-bottom:6px;}
+.admin-sub{color:var(--text-faint); font-size:13px; margin-bottom:28px; font-family:var(--font-mono);}
+
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:12px; font-family:var(--font-mono); letter-spacing:1px; color:var(--gold); text-transform:uppercase; margin-bottom:6px;}
+.field input[type="text"], .field input[type="email"], .field input[type="password"], .field input[type="url"], .field input[type="number"], .field textarea, .field select{
+  width:100%; background:var(--bg-card); border:1px solid var(--hairline-strong); color:var(--text);
+  padding:11px 12px; border-radius:var(--radius); font-family:var(--font-body); font-size:14px;
+}
+.field textarea{min-height:110px; resize:vertical;}
+.field input:focus, .field textarea:focus, .field select:focus{border-color:var(--gold);}
+.field input[type="file"]{
+  width:100%; color:var(--text-dim); font-size:13px;
+  background:var(--bg-card); border:1px dashed var(--hairline-strong); padding:14px; border-radius:var(--radius);
+}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media (max-width:560px){.field-row{grid-template-columns:1fr;}}
+
+.admin-tabs{display:flex; gap:6px; margin-bottom:24px; border-bottom:1px solid var(--hairline); flex-wrap:wrap;}
+.admin-tabs button{
+  background:none; border:none; color:var(--text-dim); padding:10px 16px;
+  font-family:var(--font-display); font-size:13px; letter-spacing:1px; text-transform:uppercase;
+  border-bottom:2px solid transparent; margin-bottom:-1px;
+}
+.admin-tabs button.active{color:var(--gold-bright); border-color:var(--gold);}
+
+.admin-item{
+  background:var(--bg-card); border:1px solid var(--hairline); border-radius:var(--radius);
+  padding:16px; margin-bottom:10px; display:flex; justify-content:space-between; gap:14px; align-items:flex-start;
+}
+.admin-item .meta{flex:1; min-width:0;}
+.admin-item h5{font-family:var(--font-display); font-size:16px; text-transform:uppercase; margin-bottom:4px;}
+.admin-item p{color:var(--text-faint); font-size:13px; max-width:480px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.admin-item .actions{display:flex; gap:8px; flex-shrink:0;}
+
+.msg{padding:10px 14px; border-radius:var(--radius); font-size:13px; margin-bottom:16px; font-family:var(--font-mono);}
+.msg-error{background:rgba(224,102,95,0.12); color:var(--danger); border:1px solid rgba(224,102,95,0.3);}
+.msg-success{background:rgba(126,163,106,0.12); color:var(--success); border:1px solid rgba(126,163,106,0.3);}
+.hidden{display:none !important;}
+.spinner{display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.divider{height:1px; background:var(--hairline); margin:28px 0;}
+</style>
+</head>
+<body>
+
+<div class="bg-texture" aria-hidden="true"></div>
+
+<div class="wrap">
+
+  <!-- ============ HEADER ============ -->
+  <header class="site">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="stamp">M<br>П</div>
+        <div>
+          <div class="brand-text">MEAT<span>ПРОЕКТ</span></div>
+          <div class="brand-sub">Консультации по мясу · с 2003 года</div>
+        </div>
+      </div>
+      <nav class="tabs" id="navTabs">
+        <button data-tab="about" class="active">О себе</button>
+        <button data-tab="price">Прайс-лист</button>
+        <button data-tab="articles">Статьи</button>
+      </nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Меню">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ ABOUT (default / hero) ============ -->
+    <section id="tab-about" class="tab-panel active">
+      <div class="hero">
+        <div class="hero-eyebrow">Технолог мясного производства · кандидат наук · опыт с 2003 года</div>
+        <h1>Технология мяса — это <em>наука</em>, а не рецепт на глазок</h1>
+        <p class="lead">Консультации по производству, переработке, закупке и разделке мяса: от рецептур и запуска колбасного цеха до подбора оборудования и работы с поставщиками.</p>
+        <div class="hero-actions">
+          <button type="button" class="btn btn-primary" onclick="switchTab('price')">Смотреть услуги</button>
+          <button type="button" class="btn btn-outline" onclick="switchTab('about'); document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Связаться</button>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="panel-head" style="margin-top:56px;">
+          <div class="eyebrow">Обо мне</div>
+          <h2>Кто такой MEATПРОЕКТ</h2>
+        </div>
+
+        <!-- static consultant profile -->
+        <div class="profile-card">
+          <div>
+            <div class="profile-medal">АВГ</div>
+            <div class="profile-medal-caption">Кандидат наук</div>
+          </div>
+          <div>
+            <div class="profile-name">Герасимов Александр Викторович</div>
+            <div class="profile-role">Технолог мясного и колбасного производства</div>
+            <div class="profile-loc">Республика Бурятия, г. Улан-Удэ</div>
+            <p class="profile-summary">Более 20 лет в мясной промышленности — от мастера участка колбасного завода до технолога, который проектирует и запускает цеха под ключ. Защитил диссертацию, преподаёт и принимает экзамены у будущих технологов. Имеет опыт запуска производства за рубежом.</p>
+
+            <div class="profile-block">
+              <h4>Образование</h4>
+              <ul class="edu-list">
+                <li>Механико-технологический техникум мясной и молочной промышленности — квалификация «Техник-технолог», специальность «Технология мяса и мясной продукции»</li>
+                <li>Восточно-Сибирский государственный технологический университет — квалификация «Инженер», специальность «Технология мяса и мясной продукции»</li>
+                <li>Аспирантура, Восточно-Сибирский государственный университет технологий и управления — квалификация «Исследователь. Преподаватель-исследователь»</li>
+                <li>Защита диссертации — учёная степень кандидата наук</li>
+              </ul>
+            </div>
+
+            <div class="profile-block">
+              <h4>Профессиональный путь</h4>
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-year">2003 — 2008</div>
+                  <p><b>ОАО «Бурятмясопром»</b> — помощник составителя фарша → составитель фарша → мастер участка → инженер-технолог колбасного завода</p>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">2008 — 2016</div>
+                  <p><b>ООО «Пиката»</b> — технолог колбасного производства: открытие производства, внедрение современных технологий</p>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">2016 — 2018</div>
+                  <p><b>ООО «СТВ-Сервис»</b> — менеджер-технолог по внедрению и разработке новых технологий мясного направления</p>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">2019 — 2022</div>
+                  <p><b>ИП Благиных-Югова Е.А. (ООО «Пиката»)</b> — технолог колбасного и деликатесного производства, разработка новых видов продукции</p>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">2023 — по настоящее время</div>
+                  <p><b>ИП Хомутов М.А. «Хомутовские традиции»</b> — технолог производства мясных полуфабрикатов: расширение производства, закупка нового оборудования, разработка новых видов продукции</p>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">С 2024</div>
+                  <p>Член экзаменационной комиссии по защите выпускных квалификационных работ «Байкальского многопрофильного колледжа»</p>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">2025 · Китай (КНР), г. Хайлар</div>
+                  <p>Проектирование и ввод в эксплуатацию колбасного цеха мощностью 5 тонн в смену</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-block">
+              <h4>Награды</h4>
+              <ul class="awards-list">
+                <li><b>Министерство сельского хозяйства и продовольствия Республики Бурятия</b>Почётная грамота «За добросовестный труд в системе агропромышленного комплекса»</li>
+                <li><b>ИП Хомутов М.А., торговая марка «Хомутовские традиции»</b>Почётная грамота «За большой вклад в повышение эффективности деятельности компании, высокий профессионализм и добросовестный труд»</li>
+              </ul>
+            </div>
+
+            <div class="profile-block">
+              <h4>Упоминания в СМИ</h4>
+              <div class="press-list">
+                <a href="https://vtinform.com/news/142/219624/" target="_blank" rel="noopener">Восток-Телеинформ (vtinform.com)</a>
+                <a href="https://share.google/tZuQUbiyZNacPkNla" target="_blank" rel="noopener">Номер Один — Новости Бурятии и Улан-Удэ</a>
+                <a href="https://share.google/ztdJyID10ugmnCyIM" target="_blank" rel="noopener">Номер Один — Новости Бурятии и Улан-Удэ</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-head">
+          <div class="eyebrow">Дополнительно</div>
+          <h2>Разделы</h2>
+        </div>
+        <div id="about-list" class="section-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ PRICE ============ -->
+    <section id="tab-price" class="tab-panel">
+      <div class="container">
+        <div class="panel-head">
+          <div class="eyebrow">Прайс-лист</div>
+          <h2>Услуги и стоимость</h2>
+          <p>Точная стоимость зависит от объёма и задачи. Пишите в контакты — рассчитаю индивидуально.</p>
+        </div>
+        <div id="price-list" class="section-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ ARTICLES ============ -->
+    <section id="tab-articles" class="tab-panel">
+      <div class="container">
+        <div class="panel-head">
+          <div class="eyebrow">Библиотека знаний</div>
+          <h2>Статьи</h2>
+          <p>Разборы, кейсы и материалы обо всём, что связано с мясом.</p>
+        </div>
+        <div id="articles-list" class="section-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site" id="contacts">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="brand-text">MEAT<span>ПРОЕКТ</span></div>
+        <p>Экспертные консультации по всему, что связано с мясом — от выбора поставщика до организации цеха разделки.</p>
+      </div>
+      <div class="footer-contacts">
+        <h4>Контакты</h4>
+        <div id="contacts-list">
+          <div class="contact-row"><b>Телефон</b><span class="text-faint">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <small>© <span id="year"></span> MEATПРОЕКТ. Заказы оформляются по контактам, указанным выше.</small>
+      <button type="button" class="admin-link" id="openAdminLink">Вход для администратора</button>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ============================================================
+     ADMIN OVERLAY
+     ============================================================ -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-box">
+    <button class="admin-close" id="adminClose">✕</button>
+
+    <!-- LOGIN VIEW -->
+    <div id="loginView">
+      <div class="admin-title">Вход в панель управления</div>
+      <div class="admin-sub">MEATПРОЕКТ · только для администратора</div>
+      <div id="loginMsg"></div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Пароль</label>
+        <input type="password" id="loginPassword" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" id="loginBtn">Войти</button>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="dashView" class="hidden">
+      <div class="admin-title">Панель управления</div>
+      <div class="admin-sub" id="adminEmailLabel"></div>
+      <div style="position:absolute; top:32px; right:60px;">
+        <button class="btn btn-ghost btn-sm" id="logoutBtn">Выйти</button>
+      </div>
+
+      <div class="admin-tabs">
+        <button data-atab="about" class="active">О себе</button>
+        <button data-atab="price">Прайс-лист</button>
+        <button data-atab="articles">Статьи</button>
+        <button data-atab="contacts">Контакты (подвал)</button>
+      </div>
+
+      <!-- content sections editor (shared for about/price/articles) -->
+      <div id="sectionsEditor">
+        <div id="sectionsMsg"></div>
+        <div id="adminItemsList"></div>
+
+        <div class="divider"></div>
+        <div style="font-family:var(--font-display); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;" id="formHeading">Добавить раздел</div>
+        <input type="hidden" id="editingId">
+        <div class="field">
+          <label>Заголовок</label>
+          <input type="text" id="fTitle" placeholder="Например: Аудит цеха разделки">
+        </div>
+        <div class="field">
+          <label>Текст</label>
+          <textarea id="fContent" placeholder="Описание раздела..."></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Ссылка (необязательно)</label>
+            <input type="url" id="fLink" placeholder="https://...">
+          </div>
+          <div class="field" id="priceField">
+            <label>Цена (только для прайс-листа, необязательно)</label>
+            <input type="text" id="fPrice" placeholder="от 15 000 ₽">
+          </div>
+        </div>
+        <div class="field">
+          <label>Фото / файл (необязательно)</label>
+          <input type="file" id="fFile" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
+        </div>
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <button class="btn btn-primary" id="saveSectionBtn">Сохранить раздел</button>
+          <button class="btn btn-ghost hidden" id="cancelEditBtn">Отменить редактирование</button>
+        </div>
+      </div>
+
+      <!-- contacts / footer settings editor -->
+      <div id="contactsEditor" class="hidden">
+        <div id="contactsMsg"></div>
+        <div class="field-row">
+          <div class="field"><label>Телефон</label><input type="text" id="sPhone" placeholder="+7 900 000-00-00"></div>
+          <div class="field"><label>Email</label><input type="text" id="sEmail" placeholder="info@meatproekt.ru"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Telegram</label><input type="text" id="sTelegram" placeholder="@meatproekt"></div>
+          <div class="field"><label>WhatsApp</label><input type="text" id="sWhatsapp" placeholder="+7 900 000-00-00"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Instagram</label><input type="text" id="sInstagram" placeholder="@meatproekt"></div>
+          <div class="field"><label>Часы работы</label><input type="text" id="sHours" placeholder="Пн–Сб, 9:00–19:00"></div>
+        </div>
+        <div class="field"><label>Адрес</label><input type="text" id="sAddress" placeholder="Город, улица"></div>
+        <button class="btn btn-primary" id="saveContactsBtn">Сохранить контакты</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — данные проекта в Supabase
+   ============================================================ */
+const SUPABASE_URL = 'https://ocufocoohsffwhpbqdmt.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Kt_wfKy5v6EdKyevogWGfA_SgY1X7GC';
+const ADMIN_EMAIL = 'MeatProject03@yandex.ru';
+const STORAGE_BUCKET = 'media';
+
+const CONFIGURED = SUPABASE_URL && SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.length > 10;
+const supabase = CONFIGURED ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+document.getElementById('year').textContent = new Date().getFullYear();
+
+/* ============================================================
+   TABS (public site)
+   ============================================================ */
+function switchTab(tab){
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+  document.getElementById('navTabs').classList.remove('open');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+document.getElementById('navToggle').addEventListener('click', () => document.getElementById('navTabs').classList.toggle('open'));
+
+/* ============================================================
+   RENDER dynamic sections on public site
+   ============================================================ */
+const listContainers = { about: 'about-list', price: 'price-list', articles: 'articles-list' };
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+function renderSections(tab, rows){
+  const el = document.getElementById(listContainers[tab]);
+  if(!rows || rows.length === 0){
+    el.innerHTML = `<div class="empty-state">Разделы появятся здесь совсем скоро</div>`;
+    return;
+  }
+  el.innerHTML = rows.map((r, i) => {
+    const isPrice = tab === 'price';
+    const priceTag = isPrice && r.link_price ? `<div class="price-tag">${escapeHtml(r.link_price)}</div>` : '';
+    const media = r.file_url
+      ? (r.file_type && r.file_type.startsWith('image')
+          ? `<div class="card-media"><img src="${r.file_url}" alt="${escapeHtml(r.title)}" loading="lazy"></div>`
+          : `<div class="card-links"><a href="${r.file_url}" target="_blank" rel="noopener">Скачать файл ↓</a></div>`)
+      : '';
+    const link = r.link ? `<div class="card-links"><a href="${r.link}" target="_blank" rel="noopener">Подробнее →</a></div>` : '';
+    return `
+      <div class="content-card ${isPrice ? 'price-card' : ''}">
+        <div class="card-mark">${String(i+1).padStart(2,'0')}</div>
+        <div class="card-body">
+          <h3>${escapeHtml(r.title)}</h3>
+          ${r.content ? `<div class="card-text">${escapeHtml(r.content)}</div>` : ''}
+          ${media}
+          ${link}
+        </div>
+        ${priceTag}
+      </div>`;
+  }).join('');
+}
+
+async function loadPublicSections(){
+  if(!CONFIGURED){
+    ['about','price','articles'].forEach(tab => {
+      document.getElementById(listContainers[tab]).innerHTML =
+        `<div class="empty-state">Сайт ещё не подключён к базе данных.<br>Проверьте SUPABASE_URL и SUPABASE_ANON_KEY в index.html</div>`;
+    });
+    return;
+  }
+  for(const tab of ['about','price','articles']){
+    try{
+      const { data, error } = await supabase
+        .from('sections')
+        .select('*')
+        .eq('tab', tab)
+        .order('order_index', { ascending:true });
+      if(error){ console.error(error); document.getElementById(listContainers[tab]).innerHTML = `<div class="empty-state">Не удалось загрузить данные</div>`; continue; }
+      renderSections(tab, data);
+    }catch(e){
+      console.error(e);
+      document.getElementById(listContainers[tab]).innerHTML = `<div class="empty-state">Не удалось загрузить данные</div>`;
+    }
+  }
+}
+
+async function loadPublicContacts(){
+  if(!CONFIGURED){ return; }
+  try{
+    const { data, error } = await supabase.from('settings').select('*').eq('id', 1).single();
+    if(error || !data){ return; }
+    const rows = [];
+    if(data.phone) rows.push(['Телефон', `<a href="tel:${data.phone.replace(/\s/g,'')}">${escapeHtml(data.phone)}</a>`]);
+    if(data.email) rows.push(['Email', `<a href="mailto:${data.email}">${escapeHtml(data.email)}</a>`]);
+    if(data.telegram) rows.push(['Telegram', `<a href="https://t.me/${data.telegram.replace('@','')}" target="_blank" rel="noopener">${escapeHtml(data.telegram)}</a>`]);
+    if(data.whatsapp) rows.push(['WhatsApp', `<a href="https://wa.me/${data.whatsapp.replace(/\D/g,'')}" target="_blank" rel="noopener">${escapeHtml(data.whatsapp)}</a>`]);
+    if(data.instagram) rows.push(['Instagram', `<a href="https://instagram.com/${data.instagram.replace('@','')}" target="_blank" rel="noopener">${escapeHtml(data.instagram)}</a>`]);
+    if(data.work_hours) rows.push(['Часы работы', escapeHtml(data.work_hours)]);
+    if(data.address) rows.push(['Адрес', escapeHtml(data.address)]);
+    if(rows.length){
+      document.getElementById('contacts-list').innerHTML = rows.map(([k,v]) => `<div class="contact-row"><b>${k}</b><span>${v}</span></div>`).join('');
+    }
+  }catch(e){ console.error(e); }
+}
+
+loadPublicSections();
+loadPublicContacts();
+
+/* ============================================================
+   ADMIN PANEL
+   ============================================================ */
+const adminOverlay = document.getElementById('adminOverlay');
+const loginView = document.getElementById('loginView');
+const dashView = document.getElementById('dashView');
+let currentAdminTab = 'about';
+let currentSession = null;
+
+document.getElementById('openAdminLink').addEventListener('click', () => {
+  adminOverlay.classList.add('open');
+  checkSession();
+});
+document.getElementById('adminClose').addEventListener('click', () => adminOverlay.classList.remove('open'));
+adminOverlay.addEventListener('click', (e) => { if(e.target === adminOverlay) adminOverlay.classList.remove('open'); });
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') adminOverlay.classList.remove('open'); });
+
+async function checkSession(){
+  if(!CONFIGURED){
+    document.getElementById('loginMsg').innerHTML = `<div class="msg msg-error">База данных не настроена. Проверьте SUPABASE_URL и SUPABASE_ANON_KEY в index.html.</div>`;
+    return;
+  }
+  const { data } = await supabase.auth.getSession();
+  currentSession = data.session;
+  if(currentSession && currentSession.user.email === ADMIN_EMAIL){
+    showDashboard();
+  } else {
+    loginView.classList.remove('hidden');
+    dashView.classList.add('hidden');
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const msg = document.getElementById('loginMsg');
+  msg.innerHTML = '';
+  if(!email || !password){
+    msg.innerHTML = `<div class="msg msg-error">Заполните email и пароль</div>`;
+    return;
+  }
+  const btn = document.getElementById('loginBtn');
+  const original = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span> Вход...';
+  try{
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    btn.textContent = original;
+    if(error){
+      msg.innerHTML = `<div class="msg msg-error">Ошибка входа: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    if(data.user.email !== ADMIN_EMAIL){
+      msg.innerHTML = `<div class="msg msg-error">Доступ только для администратора</div>`;
+      await supabase.auth.signOut();
+      return;
+    }
+    currentSession = data.session;
+    showDashboard();
+  }catch(e){
+    btn.textContent = original;
+    msg.innerHTML = `<div class="msg msg-error">Ошибка сети. Попробуйте ещё раз.</div>`;
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+  currentSession = null;
+  loginView.classList.remove('hidden');
+  dashView.classList.add('hidden');
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+});
+
+function showDashboard(){
+  loginView.classList.add('hidden');
+  dashView.classList.remove('hidden');
+  document.getElementById('adminEmailLabel').textContent = 'Вы вошли как ' + ADMIN_EMAIL;
+  switchAdminTab('about');
+}
+
+document.querySelectorAll('.admin-tabs button').forEach(b => {
+  b.addEventListener('click', () => switchAdminTab(b.dataset.atab));
+});
+
+function switchAdminTab(tab){
+  currentAdminTab = tab;
+  document.querySelectorAll('.admin-tabs button').forEach(b => b.classList.toggle('active', b.dataset.atab === tab));
+  resetForm();
+  if(tab === 'contacts'){
+    document.getElementById('sectionsEditor').classList.add('hidden');
+    document.getElementById('contactsEditor').classList.remove('hidden');
+    loadContactsForm();
+  } else {
+    document.getElementById('sectionsEditor').classList.remove('hidden');
+    document.getElementById('contactsEditor').classList.add('hidden');
+    document.getElementById('priceField').style.display = tab === 'price' ? 'block' : 'none';
+    loadAdminItems(tab);
+  }
+}
+
+async function loadAdminItems(tab){
+  const list = document.getElementById('adminItemsList');
+  list.innerHTML = 'Загрузка...';
+  try{
+    const { data, error } = await supabase.from('sections').select('*').eq('tab', tab).order('order_index', { ascending:true });
+    if(error){ list.innerHTML = `<div class="msg msg-error">${escapeHtml(error.message)}</div>`; return; }
+    if(!data.length){ list.innerHTML = `<div class="empty-state">Пока нет разделов в этой вкладке</div>`; return; }
+    list.innerHTML = data.map(r => `
+      <div class="admin-item">
+        <div class="meta">
+          <h5>${escapeHtml(r.title)}</h5>
+          <p>${escapeHtml(r.content || r.link || r.file_url || '')}</p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-ghost btn-sm" onclick="editSection('${r.id}')">Изменить</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSection('${r.id}')">Удалить</button>
+        </div>
+      </div>
+    `).join('');
+    window.__adminRows = data;
+  }catch(e){
+    list.innerHTML = `<div class="msg msg-error">Ошибка загрузки данных</div>`;
+  }
+}
+
+function resetForm(){
+  document.getElementById('editingId').value = '';
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fContent').value = '';
+  document.getElementById('fLink').value = '';
+  document.getElementById('fPrice').value = '';
+  document.getElementById('fFile').value = '';
+  document.getElementById('formHeading').textContent = 'Добавить раздел';
+  document.getElementById('cancelEditBtn').classList.add('hidden');
+  document.getElementById('sectionsMsg').innerHTML = '';
+}
+
+window.editSection = function(id){
+  const row = (window.__adminRows || []).find(r => r.id === id);
+  if(!row) return;
+  document.getElementById('editingId').value = row.id;
+  document.getElementById('fTitle').value = row.title || '';
+  document.getElementById('fContent').value = row.content || '';
+  document.getElementById('fLink').value = row.link || '';
+  document.getElementById('fPrice').value = row.link_price || '';
+  document.getElementById('formHeading').textContent = 'Редактировать раздел';
+  document.getElementById('cancelEditBtn').classList.remove('hidden');
+  document.getElementById('fTitle').scrollIntoView({behavior:'smooth', block:'center'});
+};
+
+document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
+
+window.deleteSection = async function(id){
+  if(!confirm('Удалить этот раздел?')) return;
+  try{
+    const { error } = await supabase.from('sections').delete().eq('id', id);
+    const msg = document.getElementById('sectionsMsg');
+    if(error){ msg.innerHTML = `<div class="msg msg-error">${escapeHtml(error.message)}</div>`; return; }
+    msg.innerHTML = `<div class="msg msg-success">Раздел удалён</div>`;
+    loadAdminItems(currentAdminTab);
+    loadPublicSections();
+  }catch(e){
+    document.getElementById('sectionsMsg').innerHTML = `<div class="msg msg-error">Ошибка сети</div>`;
+  }
+};
+
+document.getElementById('saveSectionBtn').addEventListener('click', async () => {
+  const msg = document.getElementById('sectionsMsg');
+  msg.innerHTML = '';
+  const title = document.getElementById('fTitle').value.trim();
+  const content = document.getElementById('fContent').value.trim();
+  const link = document.getElementById('fLink').value.trim();
+  const priceVal = document.getElementById('fPrice').value.trim();
+  const fileInput = document.getElementById('fFile');
+  const editingId = document.getElementById('editingId').value;
+
+  if(!title){
+    msg.innerHTML = `<div class="msg msg-error">Укажите заголовок раздела</div>`;
+    return;
+  }
+
+  const btn = document.getElementById('saveSectionBtn');
+  const original = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span> Сохранение...';
+
+  try{
+    let file_url = null;
+    let file_type = null;
+
+    if(fileInput.files && fileInput.files[0]){
+      const file = fileInput.files[0];
+      const path = `${currentAdminTab}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_')}`;
+      const { error: upErr } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, { upsert:true });
+      if(upErr){
+        msg.innerHTML = `<div class="msg msg-error">Ошибка загрузки файла: ${escapeHtml(upErr.message)}</div>`;
+        btn.textContent = original;
+        return;
+      }
+      const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+      file_url = pub.publicUrl;
+      file_type = file.type;
+    }
+
+    const payload = {
+      tab: currentAdminTab,
+      title,
+      content: content || null,
+      link: link || null,
+      link_price: priceVal || null,
+    };
+    if(file_url){ payload.file_url = file_url; payload.file_type = file_type; }
+
+    let error;
+    if(editingId){
+      ({ error } = await supabase.from('sections').update(payload).eq('id', editingId));
+    } else {
+      const { count } = await supabase.from('sections').select('*', { count:'exact', head:true }).eq('tab', currentAdminTab);
+      payload.order_index = count || 0;
+      ({ error } = await supabase.from('sections').insert(payload));
+    }
+
+    btn.textContent = original;
+
+    if(error){
+      msg.innerHTML = `<div class="msg msg-error">${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    msg.innerHTML = `<div class="msg msg-success">Сохранено</div>`;
+    resetForm();
+    loadAdminItems(currentAdminTab);
+    loadPublicSections();
+  }catch(e){
+    btn.textContent = original;
+    msg.innerHTML = `<div class="msg msg-error">Ошибка сети. Попробуйте ещё раз.</div>`;
+  }
+});
+
+async function loadContactsForm(){
+  const msg = document.getElementById('contactsMsg');
+  try{
+    const { data, error } = await supabase.from('settings').select('*').eq('id', 1).single();
+    if(error){ msg.innerHTML = `<div class="msg msg-error">${escapeHtml(error.message)}</div>`; return; }
+    if(!data) return;
+    document.getElementById('sPhone').value = data.phone || '';
+    document.getElementById('sEmail').value = data.email || '';
+    document.getElementById('sTelegram').value = data.telegram || '';
+    document.getElementById('sWhatsapp').value = data.whatsapp || '';
+    document.getElementById('sInstagram').value = data.instagram || '';
+    document.getElementById('sHours').value = data.work_hours || '';
+    document.getElementById('sAddress').value = data.address || '';
+  }catch(e){
+    msg.innerHTML = `<div class="msg msg-error">Ошибка загрузки данных</div>`;
+  }
+}
+
+document.getElementById('saveContactsBtn').addEventListener('click', async () => {
+  const msg = document.getElementById('contactsMsg');
+  const btn = document.getElementById('saveContactsBtn');
+  const original = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span> Сохранение...';
+  const payload = {
+    phone: document.getElementById('sPhone').value.trim() || null,
+    email: document.getElementById('sEmail').value.trim() || null,
+    telegram: document.getElementById('sTelegram').value.trim() || null,
+    whatsapp: document.getElementById('sWhatsapp').value.trim() || null,
+    instagram: document.getElementById('sInstagram').value.trim() || null,
+    work_hours: document.getElementById('sHours').value.trim() || null,
+    address: document.getElementById('sAddress').value.trim() || null,
+  };
+  try{
+    const { error } = await supabase.from('settings').update(payload).eq('id', 1);
+    btn.textContent = original;
+    if(error){ msg.innerHTML = `<div class="msg msg-error">${escapeHtml(error.message)}</div>`; return; }
+    msg.innerHTML = `<div class="msg msg-success">Контакты обновлены</div>`;
+    loadPublicContacts();
+  }catch(e){
+    btn.textContent = original;
+    msg.innerHTML = `<div class="msg msg-error">Ошибка сети. Попробуйте ещё раз.</div>`;
+  }
+});
+</script>
+</body>
+</html>
