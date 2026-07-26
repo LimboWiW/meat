@@ -868,7 +868,7 @@ async function checkSession(){
   try{
     const { data } = await sb.auth.getSession();
     currentSession = data.session;
-    if(currentSession && currentSession.user.email === ADMIN_EMAIL){
+    if(currentSession && currentSession.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
       showDashboard();
     } else {
       loginView.classList.remove('hidden');
@@ -902,7 +902,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
       msg.innerHTML = `<div class="msg msg-error">Ошибка входа: ${escapeHtml(error.message)}</div>`;
       return;
     }
-    if(data.user.email !== ADMIN_EMAIL){
+    if(data.user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
       msg.innerHTML = `<div class="msg msg-error">Доступ только для администратора</div>`;
       await sb.auth.signOut();
       return;
