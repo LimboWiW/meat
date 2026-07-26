@@ -95,7 +95,7 @@ header.site{
   padding:16px 24px; max-width:1080px; margin:0 auto;
   gap:20px;
 }
-.brand{display:flex; align-items:center; gap:12px;}
+.brand{display:flex; align-items:center; gap:12px; min-width:0;}
 .stamp{
   width:44px; height:44px; border-radius:50%;
   border:2px solid var(--gold);
@@ -118,6 +118,7 @@ header.site{
 .brand-sub{
   font-family:var(--font-mono); font-size:10px; letter-spacing:1.6px;
   color:var(--text-faint); text-transform:uppercase; margin-top:2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:56vw;
 }
 
 nav.tabs{display:flex; gap:4px;}
@@ -136,17 +137,17 @@ nav.tabs button:hover{color:var(--text);}
 nav.tabs button.active{color:var(--gold-bright);}
 nav.tabs button.active::after{transform:scaleX(1);}
 
-.nav-toggle{display:none; background:none; border:1px solid var(--hairline-strong); color:var(--text); padding:8px 12px; border-radius:var(--radius); font-size:18px;}
+.nav-toggle{display:none; background:none; border:1px solid var(--hairline-strong); color:var(--text); padding:10px 14px; border-radius:var(--radius); font-size:18px; flex-shrink:0;}
 
 @media (max-width:720px){
   nav.tabs{
-    position:fixed; top:73px; left:0; right:0; bottom:0;
-    background:var(--bg-base); flex-direction:column; padding:24px;
+    position:fixed; top:0; left:0; right:0; bottom:0;
+    background:var(--bg-base); flex-direction:column; padding:96px 24px 24px;
     transform:translateX(100%); transition:transform 0.3s ease; z-index:49;
     gap:0;
   }
   nav.tabs.open{transform:translateX(0);}
-  nav.tabs button{width:100%; text-align:left; padding:16px 8px; font-size:20px; border-bottom:1px solid var(--hairline);}
+  nav.tabs button{width:100%; text-align:left; padding:18px 8px; font-size:22px; border-bottom:1px solid var(--hairline);}
   .nav-toggle{display:block;}
 }
 
@@ -184,21 +185,29 @@ nav.tabs button.active::after{transform:scaleX(1);}
 }
 
 .btn{
-  display:inline-flex; align-items:center; gap:8px;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
   font-family:var(--font-display); font-size:14px; letter-spacing:1.5px;
   text-transform:uppercase; padding:14px 28px; border-radius:var(--radius);
   border:1px solid transparent; transition:transform 0.15s, background 0.2s, border-color .2s;
+  min-height:48px;
 }
 .btn:hover{transform:translateY(-1px);}
 .btn-primary{background:var(--accent-bright); color:#fff; border-color:var(--accent-bright);}
 .btn-primary:hover{background:var(--accent);}
 .btn-outline{border-color:var(--gold-dim); color:var(--gold-bright);}
 .btn-outline:hover{border-color:var(--gold); background:rgba(201,161,90,0.08);}
-.btn-sm{padding:8px 16px; font-size:12px;}
+.btn-sm{padding:10px 16px; font-size:12px; min-height:40px;}
 .btn-ghost{background:none; border:1px solid var(--hairline-strong); color:var(--text-dim);}
 .btn-ghost:hover{color:var(--text); border-color:var(--gold-dim);}
 .btn-danger{background:none; border:1px solid var(--danger); color:var(--danger);}
 .btn-danger:hover{background:rgba(224,102,95,0.1);}
+
+@media (max-width:480px){
+  .hero{padding:64px 16px 48px;}
+  .hero-actions{flex-direction:column; align-items:stretch;}
+  .hero-actions .btn{width:100%;}
+  .container{padding:0 16px;}
+}
 
 /* ---------- section framing ---------- */
 main{min-height:60vh;}
@@ -216,13 +225,18 @@ main{min-height:60vh;}
 }
 .panel-head p{color:var(--text-dim); max-width:520px; margin:12px auto 0;}
 
+@media (max-width:480px){
+  .tab-panel{padding:44px 0 64px;}
+  .panel-head{margin-bottom:28px;}
+}
+
 /* ---------- consultant profile card (static, About tab) ---------- */
 .profile-card{
   background:var(--bg-card); border:1px solid var(--hairline-strong);
   border-radius:var(--radius); padding:40px; margin-bottom:56px;
   display:grid; grid-template-columns:160px 1fr; gap:36px;
 }
-@media (max-width:640px){.profile-card{grid-template-columns:1fr; text-align:center;}}
+@media (max-width:640px){.profile-card{grid-template-columns:1fr; text-align:center; padding:28px 20px;}}
 .profile-medal{
   width:132px; height:132px; border-radius:50%; margin:0 auto;
   border:2px solid var(--gold); position:relative;
@@ -248,16 +262,18 @@ main{min-height:60vh;}
   font-family:var(--font-mono); font-size:12px; letter-spacing:2px; color:var(--gold);
   text-transform:uppercase; margin-bottom:14px;
 }
-.edu-list li{color:var(--text-dim); font-size:14px; padding-left:16px; position:relative; margin-bottom:8px;}
+.edu-list li{color:var(--text-dim); font-size:14px; padding-left:16px; position:relative; margin-bottom:8px; text-align:left;}
 .edu-list li::before{content:'—'; position:absolute; left:0; color:var(--gold-dim);}
 
-.timeline{border-left:1px solid var(--hairline-strong); padding-left:24px; margin-left:4px;}
+.timeline{border-left:1px solid var(--hairline-strong); padding-left:24px; margin-left:4px; text-align:left;}
+@media (max-width:640px){.timeline{margin-left:0; padding-left:20px;}}
 .timeline-item{position:relative; padding-bottom:22px;}
 .timeline-item:last-child{padding-bottom:0;}
 .timeline-item::before{
   content:''; position:absolute; left:-29px; top:4px; width:9px; height:9px;
   border-radius:50%; background:var(--gold); box-shadow:0 0 0 3px var(--bg-card);
 }
+@media (max-width:640px){.timeline-item::before{left:-25px;}}
 .timeline-year{font-family:var(--font-mono); font-size:12px; color:var(--gold-bright); letter-spacing:0.5px; margin-bottom:3px;}
 .timeline-item p{color:var(--text-dim); font-size:14px;}
 .timeline-item b{color:var(--text); font-weight:500;}
@@ -265,6 +281,7 @@ main{min-height:60vh;}
 .awards-list li{
   color:var(--text-dim); font-size:14px; margin-bottom:12px; padding:14px 16px;
   border:1px solid var(--hairline); border-radius:var(--radius); background:rgba(0,0,0,0.15);
+  text-align:left;
 }
 .awards-list li b{display:block; color:var(--text); font-weight:500; margin-bottom:3px; font-family:var(--font-display); text-transform:uppercase; font-size:13px; letter-spacing:0.5px;}
 
@@ -272,7 +289,7 @@ main{min-height:60vh;}
 .press-list a{
   display:flex; align-items:center; gap:10px; font-size:14px; color:var(--text-dim);
   border:1px solid var(--hairline); border-radius:var(--radius); padding:12px 16px;
-  transition:border-color 0.2s, color 0.2s;
+  transition:border-color 0.2s, color 0.2s; text-align:left;
 }
 .press-list a:hover{border-color:var(--gold-dim); color:var(--gold-bright);}
 .press-list a::before{content:'↗'; color:var(--gold-dim); font-family:var(--font-mono);}
@@ -297,7 +314,7 @@ main{min-height:60vh;}
 }
 .card-body .card-text{color:var(--text-dim); white-space:pre-wrap; margin-bottom:14px;}
 .card-media{margin:14px 0;}
-.card-media img{border-radius:var(--radius); border:1px solid var(--hairline); max-height:360px; object-fit:cover;}
+.card-media img{border-radius:var(--radius); border:1px solid var(--hairline); max-height:360px; object-fit:cover; width:100%;}
 .card-links{display:flex; gap:16px; flex-wrap:wrap;}
 .card-links a{
   font-family:var(--font-mono); font-size:13px; color:var(--gold-bright);
@@ -315,6 +332,12 @@ main{min-height:60vh;}
   border:1px dashed var(--hairline-strong); border-radius:var(--radius);
 }
 
+@media (max-width:480px){
+  .content-card{padding:20px; gap:14px; grid-template-columns:32px 1fr;}
+  .card-mark{width:32px; height:32px; font-size:10px;}
+  .card-body h3{font-size:17px;}
+}
+
 /* ---------- footer ---------- */
 footer.site{
   border-top:1px solid var(--hairline);
@@ -326,23 +349,26 @@ footer.site{
   display:grid; grid-template-columns:1.3fr 1fr; gap:40px;
   max-width:1080px; margin:0 auto 32px;
 }
-@media (max-width:640px){.footer-grid{grid-template-columns:1fr;}}
+@media (max-width:640px){.footer-grid{grid-template-columns:1fr; text-align:center;}}
 .footer-brand .brand-text{font-size:18px;}
 .footer-brand p{color:var(--text-faint); margin-top:14px; max-width:340px; font-size:14px;}
+@media (max-width:640px){.footer-brand p{margin-left:auto; margin-right:auto;}}
 .footer-contacts h4{
   font-family:var(--font-mono); font-size:12px; letter-spacing:2px;
   color:var(--gold); text-transform:uppercase; margin-bottom:16px;
 }
-.contact-row{display:flex; gap:10px; margin-bottom:10px; font-size:15px; color:var(--text-dim);}
-.contact-row b{color:var(--text); font-weight:500; min-width:110px; display:inline-block;}
+.contact-row{display:flex; gap:10px; margin-bottom:10px; font-size:15px; color:var(--text-dim); flex-wrap:wrap; justify-content:center;}
+@media (min-width:641px){.contact-row{justify-content:flex-start;}}
+.contact-row b{color:var(--text); font-weight:500; min-width:110px; display:inline-block; text-align:left;}
 .contact-row a{color:var(--gold-bright);}
 .contact-row a:hover{text-decoration:underline;}
 .footer-bottom{
   max-width:1080px; margin:0 auto; padding-top:24px; border-top:1px solid var(--hairline);
   display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
 }
+@media (max-width:640px){.footer-bottom{flex-direction:column; text-align:center;}}
 .footer-bottom small{color:var(--text-faint); font-size:12px;}
-.admin-link{font-family:var(--font-mono); font-size:12px; color:var(--text-faint); opacity:0.7; background:none; border:none;}
+.admin-link{font-family:var(--font-mono); font-size:12px; color:var(--text-faint); opacity:0.7; background:none; border:none; padding:6px;}
 .admin-link:hover{color:var(--gold); opacity:1;}
 
 /* ============================================================
@@ -359,11 +385,16 @@ footer.site{
   width:100%; max-width:880px; border-radius:var(--radius);
   padding:32px; position:relative;
 }
+@media (max-width:560px){
+  .admin-overlay{padding:0;}
+  .admin-box{max-width:100%; min-height:100vh; border:none; padding:24px 18px;}
+}
 .admin-close{
   position:absolute; top:20px; right:20px; background:none; border:none;
-  color:var(--text-faint); font-size:22px; line-height:1;
+  color:var(--text-faint); font-size:26px; line-height:1; padding:6px;
 }
 .admin-close:hover{color:var(--text);}
+.admin-header-row{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; padding-right:34px; margin-bottom:8px;}
 .admin-title{font-family:var(--font-display); font-size:24px; text-transform:uppercase; margin-bottom:6px;}
 .admin-sub{color:var(--text-faint); font-size:13px; margin-bottom:28px; font-family:var(--font-mono);}
 
@@ -371,7 +402,7 @@ footer.site{
 .field label{display:block; font-size:12px; font-family:var(--font-mono); letter-spacing:1px; color:var(--gold); text-transform:uppercase; margin-bottom:6px;}
 .field input[type="text"], .field input[type="email"], .field input[type="password"], .field input[type="url"], .field input[type="number"], .field textarea, .field select{
   width:100%; background:var(--bg-card); border:1px solid var(--hairline-strong); color:var(--text);
-  padding:11px 12px; border-radius:var(--radius); font-family:var(--font-body); font-size:14px;
+  padding:12px; border-radius:var(--radius); font-family:var(--font-body); font-size:16px;
 }
 .field textarea{min-height:110px; resize:vertical;}
 .field input:focus, .field textarea:focus, .field select:focus{border-color:var(--gold);}
@@ -382,22 +413,28 @@ footer.site{
 .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
 @media (max-width:560px){.field-row{grid-template-columns:1fr;}}
 
-.admin-tabs{display:flex; gap:6px; margin-bottom:24px; border-bottom:1px solid var(--hairline); flex-wrap:wrap;}
+.admin-tabs{display:flex; gap:6px; margin-bottom:24px; border-bottom:1px solid var(--hairline); flex-wrap:wrap; overflow-x:auto;}
 .admin-tabs button{
   background:none; border:none; color:var(--text-dim); padding:10px 16px;
   font-family:var(--font-display); font-size:13px; letter-spacing:1px; text-transform:uppercase;
-  border-bottom:2px solid transparent; margin-bottom:-1px;
+  border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap;
 }
 .admin-tabs button.active{color:var(--gold-bright); border-color:var(--gold);}
 
 .admin-item{
   background:var(--bg-card); border:1px solid var(--hairline); border-radius:var(--radius);
   padding:16px; margin-bottom:10px; display:flex; justify-content:space-between; gap:14px; align-items:flex-start;
+  flex-wrap:wrap;
 }
-.admin-item .meta{flex:1; min-width:0;}
+.admin-item .meta{flex:1; min-width:180px;}
 .admin-item h5{font-family:var(--font-display); font-size:16px; text-transform:uppercase; margin-bottom:4px;}
 .admin-item p{color:var(--text-faint); font-size:13px; max-width:480px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .admin-item .actions{display:flex; gap:8px; flex-shrink:0;}
+@media (max-width:480px){
+  .admin-item{flex-direction:column; align-items:stretch;}
+  .admin-item .actions{width:100%;}
+  .admin-item .actions .btn{flex:1;}
+}
 
 .msg{padding:10px 14px; border-radius:var(--radius); font-size:13px; margin-bottom:16px; font-family:var(--font-mono);}
 .msg-error{background:rgba(224,102,95,0.12); color:var(--danger); border:1px solid rgba(224,102,95,0.3);}
@@ -420,7 +457,7 @@ footer.site{
     <div class="header-inner">
       <div class="brand">
         <div class="stamp">M<br>П</div>
-        <div>
+        <div style="min-width:0;">
           <div class="brand-text">MEAT<span>ПРОЕКТ</span></div>
           <div class="brand-sub">Технологические решения для мясного производства · с 2003 год</div>
         </div>
@@ -588,7 +625,7 @@ footer.site{
      ============================================================ -->
 <div class="admin-overlay" id="adminOverlay">
   <div class="admin-box">
-    <button class="admin-close" id="adminClose">✕</button>
+    <button class="admin-close" id="adminClose" aria-label="Закрыть">✕</button>
 
     <!-- LOGIN VIEW -->
     <div id="loginView">
@@ -608,9 +645,11 @@ footer.site{
 
     <!-- DASHBOARD VIEW -->
     <div id="dashView" class="hidden">
-      <div class="admin-title">Панель управления</div>
-      <div class="admin-sub" id="adminEmailLabel"></div>
-      <div style="position:absolute; top:32px; right:60px;">
+      <div class="admin-header-row">
+        <div>
+          <div class="admin-title">Панель управления</div>
+          <div class="admin-sub" id="adminEmailLabel"></div>
+        </div>
         <button class="btn btn-ghost btn-sm" id="logoutBtn">Выйти</button>
       </div>
 
@@ -651,7 +690,7 @@ footer.site{
           <label>Фото / файл (необязательно)</label>
           <input type="file" id="fFile" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
         </div>
-        <div style="display:flex; gap:10px; margin-top:8px;">
+        <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
           <button class="btn btn-primary" id="saveSectionBtn">Сохранить раздел</button>
           <button class="btn btn-ghost hidden" id="cancelEditBtn">Отменить редактирование</button>
         </div>
@@ -681,20 +720,7 @@ footer.site{
 
 <script>
 /* ============================================================
-   CONFIG — данные проекта в Supabase
-   ============================================================ */
-const SUPABASE_URL = 'https://ocufocoohsffwhpbqdmt.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_Kt_wfKy5v6EdKyevogWGfA_SgY1X7GC';
-const ADMIN_EMAIL = 'MeatProject03@yandex.ru';
-const STORAGE_BUCKET = 'media';
-
-const CONFIGURED = SUPABASE_URL && SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.length > 10;
-const supabase = CONFIGURED ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-document.getElementById('year').textContent = new Date().getFullYear();
-
-/* ============================================================
-   TABS (public site)
+   1. UI WIRING — работает всегда, даже если Supabase не загрузится
    ============================================================ */
 function switchTab(tab){
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
@@ -704,9 +730,44 @@ function switchTab(tab){
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 document.getElementById('navToggle').addEventListener('click', () => document.getElementById('navTabs').classList.toggle('open'));
+document.getElementById('year').textContent = new Date().getFullYear();
+
+const adminOverlay = document.getElementById('adminOverlay');
+const loginView = document.getElementById('loginView');
+const dashView = document.getElementById('dashView');
+
+document.getElementById('openAdminLink').addEventListener('click', () => {
+  adminOverlay.classList.add('open');
+  checkSession();
+});
+document.getElementById('adminClose').addEventListener('click', () => adminOverlay.classList.remove('open'));
+adminOverlay.addEventListener('click', (e) => { if(e.target === adminOverlay) adminOverlay.classList.remove('open'); });
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') adminOverlay.classList.remove('open'); });
 
 /* ============================================================
-   RENDER dynamic sections on public site
+   2. CONFIG + Supabase client (обёрнуто в try/catch, чтобы сбой
+      загрузки библиотеки не ломал остальной сайт)
+   ============================================================ */
+const SUPABASE_URL = 'https://ocufocoohsffwhpbqdmt.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Kt_wfKy5v6EdKyevogWGfA_SgY1X7GC';
+const ADMIN_EMAIL = 'MeatProject03@yandex.ru';
+const STORAGE_BUCKET = 'media';
+
+const CONFIGURED = !!(SUPABASE_URL && SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.length > 10);
+let supabase = null;
+try{
+  if(CONFIGURED && window.supabase){
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else if(CONFIGURED){
+    console.error('MEATПРОЕКТ: библиотека Supabase не загрузилась (сеть/блокировщик). Повторите попытку позже.');
+  }
+}catch(e){
+  console.error('MEATПРОЕКТ: ошибка инициализации Supabase', e);
+  supabase = null;
+}
+
+/* ============================================================
+   3. RENDER dynamic sections on public site
    ============================================================ */
 const listContainers = { about: 'about-list', price: 'price-list', articles: 'articles-list' };
 
@@ -746,7 +807,7 @@ function renderSections(tab, rows){
 }
 
 async function loadPublicSections(){
-  if(!CONFIGURED){
+  if(!supabase){
     ['about','price','articles'].forEach(tab => {
       document.getElementById(listContainers[tab]).innerHTML =
         `<div class="empty-state">Сайт ещё не подключён к базе данных.<br>Проверьте SUPABASE_URL и SUPABASE_ANON_KEY в index.html</div>`;
@@ -770,7 +831,7 @@ async function loadPublicSections(){
 }
 
 async function loadPublicContacts(){
-  if(!CONFIGURED){ return; }
+  if(!supabase){ return; }
   try{
     const { data, error } = await supabase.from('settings').select('*').eq('id', 1).single();
     if(error || !data){ return; }
@@ -792,41 +853,40 @@ loadPublicSections();
 loadPublicContacts();
 
 /* ============================================================
-   ADMIN PANEL
+   4. ADMIN PANEL LOGIC
    ============================================================ */
-const adminOverlay = document.getElementById('adminOverlay');
-const loginView = document.getElementById('loginView');
-const dashView = document.getElementById('dashView');
 let currentAdminTab = 'about';
 let currentSession = null;
 
-document.getElementById('openAdminLink').addEventListener('click', () => {
-  adminOverlay.classList.add('open');
-  checkSession();
-});
-document.getElementById('adminClose').addEventListener('click', () => adminOverlay.classList.remove('open'));
-adminOverlay.addEventListener('click', (e) => { if(e.target === adminOverlay) adminOverlay.classList.remove('open'); });
-document.addEventListener('keydown', (e) => { if(e.key === 'Escape') adminOverlay.classList.remove('open'); });
-
 async function checkSession(){
-  if(!CONFIGURED){
-    document.getElementById('loginMsg').innerHTML = `<div class="msg msg-error">База данных не настроена. Проверьте SUPABASE_URL и SUPABASE_ANON_KEY в index.html.</div>`;
-    return;
-  }
-  const { data } = await supabase.auth.getSession();
-  currentSession = data.session;
-  if(currentSession && currentSession.user.email === ADMIN_EMAIL){
-    showDashboard();
-  } else {
+  if(!supabase){
+    document.getElementById('loginMsg').innerHTML = `<div class="msg msg-error">База данных не настроена или не загрузилась. Обновите страницу и попробуйте снова.</div>`;
     loginView.classList.remove('hidden');
     dashView.classList.add('hidden');
+    return;
+  }
+  try{
+    const { data } = await supabase.auth.getSession();
+    currentSession = data.session;
+    if(currentSession && currentSession.user.email === ADMIN_EMAIL){
+      showDashboard();
+    } else {
+      loginView.classList.remove('hidden');
+      dashView.classList.add('hidden');
+    }
+  }catch(e){
+    document.getElementById('loginMsg').innerHTML = `<div class="msg msg-error">Ошибка сети. Попробуйте позже.</div>`;
   }
 }
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
+  const msg = document.getElementById('loginMsg');
+  if(!supabase){
+    msg.innerHTML = `<div class="msg msg-error">База данных не настроена или не загрузилась.</div>`;
+    return;
+  }
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
-  const msg = document.getElementById('loginMsg');
   msg.innerHTML = '';
   if(!email || !password){
     msg.innerHTML = `<div class="msg msg-error">Заполните email и пароль</div>`;
@@ -856,7 +916,9 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
-  await supabase.auth.signOut();
+  if(supabase){
+    try{ await supabase.auth.signOut(); }catch(e){}
+  }
   currentSession = null;
   loginView.classList.remove('hidden');
   dashView.classList.add('hidden');
@@ -893,6 +955,7 @@ function switchAdminTab(tab){
 
 async function loadAdminItems(tab){
   const list = document.getElementById('adminItemsList');
+  if(!supabase){ list.innerHTML = `<div class="msg msg-error">База данных не подключена</div>`; return; }
   list.innerHTML = 'Загрузка...';
   try{
     const { data, error } = await supabase.from('sections').select('*').eq('tab', tab).order('order_index', { ascending:true });
@@ -944,6 +1007,7 @@ window.editSection = function(id){
 document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
 
 window.deleteSection = async function(id){
+  if(!supabase) return;
   if(!confirm('Удалить этот раздел?')) return;
   try{
     const { error } = await supabase.from('sections').delete().eq('id', id);
@@ -960,6 +1024,10 @@ window.deleteSection = async function(id){
 document.getElementById('saveSectionBtn').addEventListener('click', async () => {
   const msg = document.getElementById('sectionsMsg');
   msg.innerHTML = '';
+  if(!supabase){
+    msg.innerHTML = `<div class="msg msg-error">База данных не подключена</div>`;
+    return;
+  }
   const title = document.getElementById('fTitle').value.trim();
   const content = document.getElementById('fContent').value.trim();
   const link = document.getElementById('fLink').value.trim();
@@ -1030,6 +1098,7 @@ document.getElementById('saveSectionBtn').addEventListener('click', async () => 
 
 async function loadContactsForm(){
   const msg = document.getElementById('contactsMsg');
+  if(!supabase){ msg.innerHTML = `<div class="msg msg-error">База данных не подключена</div>`; return; }
   try{
     const { data, error } = await supabase.from('settings').select('*').eq('id', 1).single();
     if(error){ msg.innerHTML = `<div class="msg msg-error">${escapeHtml(error.message)}</div>`; return; }
@@ -1048,6 +1117,10 @@ async function loadContactsForm(){
 
 document.getElementById('saveContactsBtn').addEventListener('click', async () => {
   const msg = document.getElementById('contactsMsg');
+  if(!supabase){
+    msg.innerHTML = `<div class="msg msg-error">База данных не подключена</div>`;
+    return;
+  }
   const btn = document.getElementById('saveContactsBtn');
   const original = btn.textContent;
   btn.innerHTML = '<span class="spinner"></span> Сохранение...';
