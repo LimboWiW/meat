@@ -323,8 +323,16 @@ main{min-height:60vh;}
 .card-links a:hover{color:var(--gold); border-color:var(--gold);}
 
 /* price list variant */
-.price-card .card-body{display:flex; justify-content:space-between; align-items:baseline; gap:20px; flex-wrap:wrap;}
-.price-tag{font-family:var(--font-mono); font-size:20px; color:var(--gold-bright); white-space:nowrap;}
+.price-card{grid-template-columns:auto 1fr auto; align-items:center;}
+.price-tag{
+  font-family:var(--font-mono); font-size:22px; font-weight:700; color:var(--gold-bright);
+  white-space:nowrap; background:rgba(201,161,90,0.1); border:1px solid var(--hairline-strong);
+  border-radius:var(--radius); padding:10px 20px; align-self:center; justify-self:end;
+}
+@media (max-width:480px){
+  .price-card{grid-template-columns:32px 1fr;}
+  .price-tag{grid-column:2 / -1; justify-self:start; margin-top:12px; font-size:19px; padding:8px 16px;}
+}
 
 .empty-state{
   text-align:center; padding:60px 20px; color:var(--text-faint);
@@ -459,7 +467,7 @@ footer.site{
         <div class="stamp">M<br>П</div>
         <div style="min-width:0;">
           <div class="brand-text">MEAT<span>ПРОЕКТ</span></div>
-          <div class="brand-sub">Технологические решения для мясного производства · с 2003 год</div>
+          <div class="brand-sub">Технологические решения для мясного производства</div>
         </div>
       </div>
       <nav class="tabs" id="navTabs">
@@ -683,7 +691,13 @@ footer.site{
           </div>
           <div class="field" id="priceField">
             <label>Цена (только для прайс-листа, необязательно)</label>
-            <input type="text" id="fPrice" placeholder="от 15 000 ₽">
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="fPrice" placeholder="от 15 000" style="flex:1;">
+              <select id="fCurrency" style="width:110px; flex-shrink:0;">
+                <option value="RUB">₽ Рубль</option>
+                <option value="USD">$ Доллар</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="field">
@@ -705,7 +719,7 @@ footer.site{
         </div>
         <div class="field-row">
           <div class="field"><label>Telegram</label><input type="text" id="sTelegram" placeholder="@meatproekt"></div>
-          <div class="field"><label>WhatsApp</label><input type="text" id="sWhatsapp" placeholder="+7 900 000-00-00"></div>
+          <div class="field"><label>Max</label><input type="text" id="sMax" placeholder="+7 900 000-00-00"></div>
         </div>
         <div class="field-row">
           <div class="field"><label>Instagram</label><input type="text" id="sInstagram" placeholder="@meatproekt"></div>
@@ -785,7 +799,8 @@ function renderSections(tab, rows){
   }
   el.innerHTML = rows.map((r, i) => {
     const isPrice = tab === 'price';
-    const priceTag = isPrice && r.link_price ? `<div class="price-tag">${escapeHtml(r.link_price)}</div>` : '';
+    const priceDisplay = r.currency === 'USD' ? `$ ${r.link_price}` : `${r.link_price} ₽`;
+    const priceTag = isPrice && r.link_price ? `<div class="price-tag">${escapeHtml(priceDisplay)}</div>` : '';
     const media = r.file_url
       ? (r.file_type && r.file_type.startsWith('image')
           ? `<div class="card-media"><img src="${r.file_url}" alt="${escapeHtml(r.title)}" loading="lazy"></div>`
@@ -985,6 +1000,7 @@ function resetForm(){
   document.getElementById('fContent').value = '';
   document.getElementById('fLink').value = '';
   document.getElementById('fPrice').value = '';
+  document.getElementById('fCurrency').value = 'RUB';
   document.getElementById('fFile').value = '';
   document.getElementById('formHeading').textContent = 'Добавить раздел';
   document.getElementById('cancelEditBtn').classList.add('hidden');
@@ -999,6 +1015,7 @@ window.editSection = function(id){
   document.getElementById('fContent').value = row.content || '';
   document.getElementById('fLink').value = row.link || '';
   document.getElementById('fPrice').value = row.link_price || '';
+  document.getElementById('fCurrency').value = row.currency || 'RUB';
   document.getElementById('formHeading').textContent = 'Редактировать раздел';
   document.getElementById('cancelEditBtn').classList.remove('hidden');
   document.getElementById('fTitle').scrollIntoView({behavior:'smooth', block:'center'});
@@ -1032,6 +1049,7 @@ document.getElementById('saveSectionBtn').addEventListener('click', async () => 
   const content = document.getElementById('fContent').value.trim();
   const link = document.getElementById('fLink').value.trim();
   const priceVal = document.getElementById('fPrice').value.trim();
+  const currencyVal = document.getElementById('fCurrency').value;
   const fileInput = document.getElementById('fFile');
   const editingId = document.getElementById('editingId').value;
 
@@ -1068,6 +1086,7 @@ document.getElementById('saveSectionBtn').addEventListener('click', async () => 
       content: content || null,
       link: link || null,
       link_price: priceVal || null,
+      currency: priceVal ? currencyVal : null,
     };
     if(file_url){ payload.file_url = file_url; payload.file_type = file_type; }
 
