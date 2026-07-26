@@ -754,16 +754,16 @@ const ADMIN_EMAIL = 'MeatProject03@yandex.ru';
 const STORAGE_BUCKET = 'media';
 
 const CONFIGURED = !!(SUPABASE_URL && SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.length > 10);
-let supabase = null;
+let sb = null;
 try{
   if(CONFIGURED && window.supabase){
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   } else if(CONFIGURED){
     console.error('MEATПРОЕКТ: библиотека Supabase не загрузилась (сеть/блокировщик). Повторите попытку позже.');
   }
 }catch(e){
   console.error('MEATПРОЕКТ: ошибка инициализации Supabase', e);
-  supabase = null;
+  sb = null;
 }
 
 /* ============================================================
@@ -807,7 +807,7 @@ function renderSections(tab, rows){
 }
 
 async function loadPublicSections(){
-  if(!supabase){
+  if(!sb){
     ['about','price','articles'].forEach(tab => {
       document.getElementById(listContainers[tab]).innerHTML =
         `<div class="empty-state">Сайт ещё не подключён к базе данных.<br>Проверьте SUPABASE_URL и SUPABASE_ANON_KEY в index.html</div>`;
@@ -816,7 +816,7 @@ async function loadPublicSections(){
   }
   for(const tab of ['about','price','articles']){
     try{
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from('sections')
         .select('*')
         .eq('tab', tab)
@@ -831,9 +831,9 @@ async function loadPublicSections(){
 }
 
 async function loadPublicContacts(){
-  if(!supabase){ return; }
+  if(!sb){ return; }
   try{
-    const { data, error } = await supabase.from('settings').select('*').eq('id', 1).single();
+    const { data, error } = await sb.from('settings').select('*').eq('id', 1).single();
     if(error || !data){ return; }
     const rows = [];
     if(data.phone) rows.push(['Телефон', `<a href="tel:${data.phone.replace(/\s/g,'')}">${escapeHtml(data.phone)}</a>`]);
@@ -859,14 +859,14 @@ let currentAdminTab = 'about';
 let currentSession = null;
 
 async function checkSession(){
-  if(!supabase){
+  if(!sb){
     document.getElementById('loginMsg').innerHTML = `<div class="msg msg-error">База данных не настроена или не загрузилась. Обновите страницу и попробуйте снова.</div>`;
     loginView.classList.remove('hidden');
     dashView.classList.add('hidden');
     return;
   }
   try{
-    const { data } = await supabase.auth.getSession();
+    const { data } = await sb.auth.getSession();
     currentSession = data.session;
     if(currentSession && currentSession.user.email === ADMIN_EMAIL){
       showDashboard();
@@ -881,7 +881,7 @@ async function checkSession(){
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const msg = document.getElementById('loginMsg');
-  if(!supabase){
+  if(!sb){
     msg.innerHTML = `<div class="msg msg-error">База данных не настроена или не загрузилась.</div>`;
     return;
   }
@@ -896,7 +896,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   const original = btn.textContent;
   btn.innerHTML = '<span class="spinner"></span> Вход...';
   try{
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
     btn.textContent = original;
     if(error){
       msg.innerHTML = `<div class="msg msg-error">Ошибка входа: ${escapeHtml(error.message)}</div>`;
@@ -904,7 +904,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     }
     if(data.user.email !== ADMIN_EMAIL){
       msg.innerHTML = `<div class="msg msg-error">Доступ только для администратора</div>`;
-      await supabase.auth.signOut();
+      await sb.auth.signOut();
       return;
     }
     currentSession = data.session;
@@ -916,8 +916,8 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
-  if(supabase){
-    try{ await supabase.auth.signOut(); }catch(e){}
+  if(sb){
+    try{ await sb.auth.signOut(); }catch(e){}
   }
   currentSession = null;
   loginView.classList.remove('hidden');
@@ -955,10 +955,10 @@ function switchAdminTab(tab){
 
 async function loadAdminItems(tab){
   const list = document.getElementById('adminItemsList');
-  if(!supabase){ list.innerHTML = `<div class="msg msg-error">База данных не подключена</div>`; return; }
+  if(!sb){ list.innerHTML = `<div class="msg msg-error">База данных не подключена</div>`; return; }
   list.innerHTML = 'Загрузка...';
   try{
-    const { data, error } = await supabase.from('sections').select('*').eq('tab', tab).order('order_index', { ascending:true });
+    const { data, error } = await sb.from('sections').select('*').eq('tab', tab).order('order_index', { ascending:true });
     if(error){ list.innerHTML = `<div class="msg msg-error">${escapeHtml(error.message)}</div>`; return; }
     if(!data.length){ list.innerHTML = `<div class="empty-state">Пока нет разделов в этой вкладке</div>`; return; }
     list.innerHTML = data.map(r => `
@@ -1007,10 +1007,10 @@ window.editSection = function(id){
 document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
 
 window.deleteSection = async function(id){
-  if(!supabase) return;
+  if(!sb) return;
   if(!confirm('Удалить этот раздел?')) return;
   try{
-    const { error } = await supabase.from('sections').delete().eq('id', id);
+    const { error } = await sb.from('sections').delete().eq('id', id);
     const msg = document.getElementById('sectionsMsg');
     if(error){ msg.innerHTML = `<div class="msg msg-error">${escapeHtml(error.message)}</div>`; return; }
     msg.innerHTML = `<div class="msg msg-success">Раздел удалён</div>`;
@@ -1024,7 +1024,7 @@ window.deleteSection = async function(id){
 document.getElementById('saveSectionBtn').addEventListener('click', async () => {
   const msg = document.getElementById('sectionsMsg');
   msg.innerHTML = '';
-  if(!supabase){
+  if(!sb){
     msg.innerHTML = `<div class="msg msg-error">База данных не подключена</div>`;
     return;
   }
@@ -1051,13 +1051,13 @@ document.getElementById('saveSectionBtn').addEventListener('click', async () => 
     if(fileInput.files && fileInput.files[0]){
       const file = fileInput.files[0];
       const path = `${currentAdminTab}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_')}`;
-      const { error: upErr } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, { upsert:true });
+      const { error: upErr } = await sb.storage.from(STORAGE_BUCKET).upload(path, file, { upsert:true });
       if(upErr){
         msg.innerHTML = `<div class="msg msg-error">Ошибка загрузки файла: ${escapeHtml(upErr.message)}</div>`;
         btn.textContent = original;
         return;
       }
-      const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+      const { data: pub } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
       file_url = pub.publicUrl;
       file_type = file.type;
     }
@@ -1073,11 +1073,11 @@ document.getElementById('saveSectionBtn').addEventListener('click', async () => 
 
     let error;
     if(editingId){
-      ({ error } = await supabase.from('sections').update(payload).eq('id', editingId));
+      ({ error } = await sb.from('sections').update(payload).eq('id', editingId));
     } else {
-      const { count } = await supabase.from('sections').select('*', { count:'exact', head:true }).eq('tab', currentAdminTab);
+      const { count } = await sb.from('sections').select('*', { count:'exact', head:true }).eq('tab', currentAdminTab);
       payload.order_index = count || 0;
-      ({ error } = await supabase.from('sections').insert(payload));
+      ({ error } = await sb.from('sections').insert(payload));
     }
 
     btn.textContent = original;
@@ -1098,9 +1098,9 @@ document.getElementById('saveSectionBtn').addEventListener('click', async () => 
 
 async function loadContactsForm(){
   const msg = document.getElementById('contactsMsg');
-  if(!supabase){ msg.innerHTML = `<div class="msg msg-error">База данных не подключена</div>`; return; }
+  if(!sb){ msg.innerHTML = `<div class="msg msg-error">База данных не подключена</div>`; return; }
   try{
-    const { data, error } = await supabase.from('settings').select('*').eq('id', 1).single();
+    const { data, error } = await sb.from('settings').select('*').eq('id', 1).single();
     if(error){ msg.innerHTML = `<div class="msg msg-error">${escapeHtml(error.message)}</div>`; return; }
     if(!data) return;
     document.getElementById('sPhone').value = data.phone || '';
@@ -1117,7 +1117,7 @@ async function loadContactsForm(){
 
 document.getElementById('saveContactsBtn').addEventListener('click', async () => {
   const msg = document.getElementById('contactsMsg');
-  if(!supabase){
+  if(!sb){
     msg.innerHTML = `<div class="msg msg-error">База данных не подключена</div>`;
     return;
   }
@@ -1134,7 +1134,7 @@ document.getElementById('saveContactsBtn').addEventListener('click', async () =>
     address: document.getElementById('sAddress').value.trim() || null,
   };
   try{
-    const { error } = await supabase.from('settings').update(payload).eq('id', 1);
+    const { error } = await sb.from('settings').update(payload).eq('id', 1);
     btn.textContent = original;
     if(error){ msg.innerHTML = `<div class="msg msg-error">${escapeHtml(error.message)}</div>`; return; }
     msg.innerHTML = `<div class="msg msg-success">Контакты обновлены</div>`;
