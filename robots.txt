@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://meatconconsultation.vercel.app/
+ 
+Sitemap: https://meatconconsultation.vercel.app/sitemap.xml
